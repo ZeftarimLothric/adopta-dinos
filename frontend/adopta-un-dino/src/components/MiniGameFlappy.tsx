@@ -20,12 +20,13 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({ onWin }) => {
   );
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [packagesGiven, setPackagesGiven] = useState(0); // Contador de paquetes entregados
-  const { user, updateUser } = useUser(); // agrega esto
+  const [packagesGiven, setPackagesGiven] = useState(0);
+  const { user, updateUser } = useUser();
+  const [notification, setNotification] = useState<string | null>(null);
 
   const gameLoopRef = useRef<number | null>(null);
 
-  // Salto al hacer click o tecla espacio
+  // Salto al hacer click
   const handleJump = () => {
     if (!gameOver) setVelocity(JUMP_STRENGTH);
   };
@@ -105,6 +106,8 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({ onWin }) => {
         const newUser = { ...user, points: user.points + 10 };
         updateUser(newUser); // <-- Aquí se actualiza el contexto y localStorage
       }
+      setNotification("+10 puntos!");
+      setTimeout(() => setNotification(null), 2000);
 
       setPackagesGiven(currentPackage);
     }
@@ -216,8 +219,29 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({ onWin }) => {
           <button onClick={resetGame}>Volver a jugar</button>
         </div>
       )}
+      {notification && <CustomNotification message={notification} />}
     </div>
   );
 };
+
+const CustomNotification: React.FC<{ message: string }> = ({ message }) => (
+  <div
+    style={{
+      position: "absolute",
+      top: 50,
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#222",
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: 8,
+      zIndex: 10,
+      fontSize: 18,
+      boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+    }}
+  >
+    {message}
+  </div>
+);
 
 export default MiniGameFlappy;
