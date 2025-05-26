@@ -2,14 +2,27 @@ import MiniGameFlappy from "../components/MiniGameFlappy";
 import { useUser } from "../context/UserContext";
 
 const Minijuegos = () => {
-  const { user, updateUser } = useUser();
+  const { user } = useUser();
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  const handleWin = (points: number) => {
-    alert(`Ganaste ${points} puntos!`);
-    if (user) {
-      const updatedUser = { ...user, points: user.points + points };
-      updateUser(updatedUser);
-      // Aquí también podrías hacer un fetch a backend para guardar puntos
+  const handleWin = async (points: number) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/users/add-points`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ points }),
+      });
+      if (!res.ok) {
+        throw new Error("Error al enviar puntos al backend");
+      }
+    } catch (err) {
+      console.error("Error al enviar puntos al backend", err);
     }
   };
 

@@ -2,6 +2,24 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const { authMiddleware } = require('../middlewares/authMiddleware');
+
+
+
+router.post('/add-points', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id; // asumimos que el middleware pone el ID aquí
+    const { points } = req.body;
+
+    const user = await User.findById(userId);
+    user.points += points;
+    await user.save();
+
+    res.json({ success: true, newPoints: user.points });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al actualizar puntos' });
+  }
+});
 
 // GET /api/users/:id
 router.get('/:id', async (req, res) => {

@@ -38,6 +38,7 @@ const rarityColors: Record<string, string> = {
 const Adopciones = () => {
   const { user, updateUser, token } = useUser();
   const [dinos, setDinos] = useState<Dinosaur[]>([]);
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   // Obtener el id de usuario desde el token JWT guardado en localStorage
   let currentUserId = "";
@@ -51,15 +52,15 @@ const Adopciones = () => {
   }
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/dinos")
+    fetch(`${BACKEND_URL}/api/dinos`)
       .then((res) => res.json())
       .then((data: Dinosaur[]) => setDinos(data))
       .catch((err) => console.error("Error fetching dinos:", err));
-  }, []);
+  }, [BACKEND_URL]);
 
   const handleReleaseDino = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/dinos/${id}/release`, {
+      const res = await fetch(`${BACKEND_URL}/api/dinos/${id}/release`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,7 +88,7 @@ const Adopciones = () => {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/api/dinos/${id}/adopt`, {
+      const res = await fetch(`${BACKEND_URL}/api/dinos/${id}/adopt`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

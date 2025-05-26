@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Dinosaur = require('../models/Dinosaur');
 const User = require('../models/User');
-const authenticateToken = require('../middlewares/authMiddleware');
+const {authenticateToken} = require('../middlewares/authMiddleware');
 
 // Obtener tipos y rarezas únicas
 router.get('/metadata', async (req, res) => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useUser } from "../context/UserContext";
 
 interface MiniGameFlappyProps {
   onWin: (points: number) => void;
@@ -20,6 +21,7 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({ onWin }) => {
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [packagesGiven, setPackagesGiven] = useState(0); // Contador de paquetes entregados
+  const { user, updateUser } = useUser(); // agrega esto
 
   const gameLoopRef = useRef<number | null>(null);
 
@@ -92,14 +94,21 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({ onWin }) => {
     };
   }, [gameOver, velocity, pteroY, obstacles]);
 
-  // Dar puntos extra cada vez que se alcance un nuevo múltiplo de 10
+  // useEffect para dar puntos extra
   useEffect(() => {
     const currentPackage = Math.floor(score / 10);
     if (currentPackage > packagesGiven) {
-      onWin(10); // Dar 10 puntos extra
+      onWin(10); // si aún necesitas esto externamente
+
+      // Actualizar los puntos del usuario
+      if (user) {
+        const newUser = { ...user, points: user.points + 10 };
+        updateUser(newUser); // <-- Aquí se actualiza el contexto y localStorage
+      }
+
       setPackagesGiven(currentPackage);
     }
-  }, [score, packagesGiven, onWin]);
+  }, [score, packagesGiven, onWin, user, updateUser]);
 
   // Reiniciar
   const resetGame = () => {
