@@ -39,7 +39,7 @@ const getGameDimensions = () => {
 };
 
 const GRAVITY = 0.5;
-const JUMP_STRENGTH = -8;
+const JUMP_STRENGTH = -5;
 const BASE_OBSTACLE_SPEED = 3;
 const SPEED_INCREASE_RATE = 0.5;
 const MAX_SPEED = 10;
