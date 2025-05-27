@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: "https://adopta-dinos.vercel.app",
   credentials: true
 }));
 app.use(express.json());
