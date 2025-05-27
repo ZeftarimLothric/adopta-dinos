@@ -11,9 +11,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: "https://adopta-dinos.vercel.app",
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "https://adopta-dinos.vercel.app",
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS: " + origin));
+    }
+  },
   credentials: true
 }));
+
 app.use(express.json());
 
 app.use((req, res, next) => {
