@@ -120,7 +120,7 @@ const Home = () => {
                 textShadow: "1px 1px 0px #c0c0c0, 2px 2px 0px #a0a0a0",
               }}
             >
-              🦖 DINOADOPTA
+              🦖 DINO-ADOPTA
             </h1>
 
             {/* Subtítulo responsivo */}
@@ -157,55 +157,6 @@ const Home = () => {
                   Explora y adopta con cariño
                 </span>
               </p>
-            </div>
-
-            {/* Estadísticas del sistema - responsivas */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-              <div className="bg-green-200 border-2 border-green-400 border-t-green-600 border-l-green-600 border-r-green-200 border-b-green-200 p-2 sm:p-3 text-center">
-                <div
-                  className="text-lg sm:text-xl font-bold text-green-800"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  🦕 24
-                </div>
-                <div
-                  className="text-xs text-green-700"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  <span className="hidden sm:inline">Especies disponibles</span>
-                  <span className="sm:hidden">Especies</span>
-                </div>
-              </div>
-              <div className="bg-blue-200 border-2 border-blue-400 border-t-blue-600 border-l-blue-600 border-r-blue-200 border-b-blue-200 p-2 sm:p-3 text-center">
-                <div
-                  className="text-lg sm:text-xl font-bold text-blue-800"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  👤 156
-                </div>
-                <div
-                  className="text-xs text-blue-700"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  <span className="hidden sm:inline">Adoptantes felices</span>
-                  <span className="sm:hidden">Adoptantes</span>
-                </div>
-              </div>
-              <div className="bg-yellow-200 border-2 border-yellow-400 border-t-yellow-600 border-l-yellow-600 border-r-yellow-200 border-b-yellow-200 p-2 sm:p-3 text-center">
-                <div
-                  className="text-lg sm:text-xl font-bold text-yellow-800"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  🏆 98%
-                </div>
-                <div
-                  className="text-xs text-yellow-700"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  <span className="hidden sm:inline">Éxito en adopciones</span>
-                  <span className="sm:hidden">Éxito</span>
-                </div>
-              </div>
             </div>
 
             {/* Botón principal estilo Windows 98 - responsivo */}
