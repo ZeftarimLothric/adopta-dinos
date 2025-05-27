@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { authMiddleware } = require('../middlewares/authMiddleware');
+const { authMiddleware, authenticateToken } = require('../middlewares/authMiddleware'); // Agregar authenticateToken
 const jwt = require('jsonwebtoken');
 
 // Middleware para verificar que es admin
@@ -61,6 +61,102 @@ router.get('/:id', async (req, res) => {
   } catch (err) {
     console.error("Error en /users/:id:", err);
     res.status(500).json({ message: 'Error al obtener usuario' });
+  }
+});
+
+// Ruta para enviar score del juego
+router.post('/game-score', authenticateToken, async (req, res) => {
+  try {
+    const { game, score } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    await user.updateGameScore(game, score);
+
+    res.json({ 
+      message: 'Score actualizado correctamente',
+      bestScore: user.gameScores[game].bestScore,
+      isNewRecord: score >= user.gameScores[game].bestScore
+    });
+  } catch (error) {
+    console.error('Error actualizando score:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Ruta para obtener leaderboard
+router.get('/leaderboard/:game', async (req, res) => {
+  try {
+    const { game } = req.params;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const users = await User.find(
+      { [`gameScores.${game}.bestScore`]: { $gt: 0 } },
+      {
+        username: 1,
+        [`gameScores.${game}`]: 1,
+        points: 1
+      }
+    )
+    .sort({ [`gameScores.${game}.bestScore`]: -1 })
+    .limit(limit);
+
+    const leaderboard = users.map((user, index) => ({
+      position: index + 1,
+      username: user.username,
+      bestScore: user.gameScores[game].bestScore,
+      totalGames: user.gameScores[game].totalGames,
+      totalObstacles: user.gameScores[game].totalObstacles,
+      lastPlayed: user.gameScores[game].lastPlayed,
+      points: user.points
+    }));
+
+    res.json(leaderboard);
+  } catch (error) {
+    console.error('Error obteniendo leaderboard:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Ruta para obtener estadísticas del usuario actual
+router.get('/my-stats/:game', authenticateToken, async (req, res) => {
+  try {
+    const { game } = req.params;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user || !user.gameScores || !user.gameScores[game]) {
+      return res.json({
+        bestScore: 0,
+        totalGames: 0,
+        totalObstacles: 0,
+        averageScore: 0,
+        rank: null
+      });
+    }
+
+    const gameData = user.gameScores[game];
+    
+    // Calcular ranking
+    const betterPlayers = await User.countDocuments({
+      [`gameScores.${game}.bestScore`]: { $gt: gameData.bestScore }
+    });
+
+    res.json({
+      bestScore: gameData.bestScore,
+      totalGames: gameData.totalGames,
+      totalObstacles: gameData.totalObstacles,
+      averageScore: gameData.totalGames > 0 ? Math.round(gameData.totalObstacles / gameData.totalGames) : 0,
+      rank: betterPlayers + 1,
+      lastPlayed: gameData.lastPlayed
+    });
+  } catch (error) {
+    console.error('Error obteniendo estadísticas:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
 
