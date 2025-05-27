@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import MiniGameFlappy from "../components/MiniGameFlappy";
 import Leaderboard from "../components/Leaderboard";
 import { useUser } from "../context/UserContext";

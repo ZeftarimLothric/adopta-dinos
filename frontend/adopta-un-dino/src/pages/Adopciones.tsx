@@ -72,10 +72,6 @@ const Adopciones = () => {
   const [dinos, setDinos] = useState<Dinosaur[]>([]);
   const [selectedDino, setSelectedDino] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"icons" | "list">("icons");
-  const [filterRarity, setFilterRarity] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<string>("name");
-  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [dialogState, setDialogState] = useState<{
     show: boolean;
     type: "adopt" | "release";
@@ -105,31 +101,6 @@ const Adopciones = () => {
         error("Error al cargar la lista de dinosaurios");
       });
   }, [BACKEND_URL]);
-
-  // Filtrar y ordenar dinosaurios
-  const filteredAndSortedDinos = dinos
-    .filter((dino) => {
-      if (filterRarity !== "all" && dino.rarity !== filterRarity) return false;
-      if (filterStatus === "available" && dino.adoptedBy) return false;
-      if (filterStatus === "adopted" && !dino.adoptedBy) return false;
-      if (filterStatus === "mine" && dino.adoptedBy?._id !== currentUserId)
-        return false;
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "cost":
-          return a.adoptionCost - b.adoptionCost;
-        case "rarity":
-          return a.rarity.localeCompare(b.rarity);
-        case "type":
-          return a.type.localeCompare(b.type);
-        default:
-          return 0;
-      }
-    });
 
   const handleReleaseDino = async (dino: Dinosaur) => {
     try {
@@ -315,10 +286,7 @@ const Adopciones = () => {
                 className="text-xs text-black font-bold flex items-center gap-1"
                 style={{ fontFamily: "MS Sans Serif, sans-serif" }}
               >
-                🦕{" "}
-                <span className="hidden sm:inline">
-                  {filteredAndSortedDinos.length}
-                </span>
+                🦕 <span className="hidden sm:inline">{dinos.length}</span>
               </span>
             </div>
             {user && (
@@ -371,73 +339,7 @@ const Adopciones = () => {
                   📋 <span className="hidden sm:inline">Lista</span>
                 </button>
               </div>
-
-              {/* Botón de filtros en móvil */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`sm:hidden px-3 py-1 text-xs border-2 transition-all ${
-                  showFilters
-                    ? "border-t-gray-600 border-l-gray-600 border-r-white border-b-white bg-gray-300 shadow-inner"
-                    : "border-t-white border-l-white border-r-gray-600 border-b-gray-600 bg-gray-200 hover:bg-gray-100"
-                }`}
-                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-              >
-                🔍 Filtros
-              </button>
             </div>
-
-            {/* Filtros - responsive */}
-            {/* <div
-              className={`flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto ${
-                showFilters ? "block" : "hidden sm:flex"
-              }`}
-            >
-              <span
-                className="text-xs font-bold text-black hidden sm:block"
-                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-              >
-                Filtros:
-              </span>
-
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <select
-                  value={filterRarity}
-                  onChange={(e) => setFilterRarity(e.target.value)}
-                  className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 px-2 py-1 text-xs focus:outline-none w-full sm:w-auto"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  <option value="all">Todas las rarezas</option>
-                  <option value="Común">⚪ Común</option>
-                  <option value="Raro">🔵 Raro</option>
-                  <option value="Épico">🟣 Épico</option>
-                  <option value="Legendario">🟠 Legendario</option>
-                </select>
-
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 px-2 py-1 text-xs focus:outline-none w-full sm:w-auto"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  <option value="all">Todos los estados</option>
-                  <option value="available">✅ Disponibles</option>
-                  <option value="adopted">🏠 Adoptados</option>
-                  <option value="mine">👤 Mis dinosaurios</option>
-                </select>
-
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 px-2 py-1 text-xs focus:outline-none w-full sm:w-auto"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  <option value="name">Ordenar por nombre</option>
-                  <option value="cost">Ordenar por costo</option>
-                  <option value="rarity">Ordenar por rareza</option>
-                  <option value="type">Ordenar por tipo</option>
-                </select>
-              </div>
-            </div> */}
           </div>
         </div>
 
@@ -501,7 +403,7 @@ const Adopciones = () => {
               /* Vista de iconos responsive */
               <div className="p-2 sm:p-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-4">
-                  {filteredAndSortedDinos.map((dino) => (
+                  {dinos.map((dino) => (
                     <div
                       key={dino._id}
                       className={`relative bg-gray-200 border-2 transition-all duration-200 cursor-pointer group hover:shadow-lg ${
@@ -781,7 +683,7 @@ const Adopciones = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredAndSortedDinos.map((dino, index) => (
+                    {dinos.map((dino, index) => (
                       <tr
                         key={dino._id}
                         className={`border-b border-gray-300 hover:bg-gray-50 transition-colors ${
@@ -936,7 +838,7 @@ const Adopciones = () => {
           <div className="bg-green-200 border border-green-400 border-t-green-600 border-l-green-600 border-r-green-200 border-b-green-200 px-2 sm:px-3 py-1 shadow-inner flex-shrink-0">
             <span className="text-black font-bold">
               📊 <span className="hidden sm:inline">Mostrando: </span>
-              {filteredAndSortedDinos.length}/{dinos.length}
+              {dinos.length}/{dinos.length}
             </span>
           </div>
         </div>

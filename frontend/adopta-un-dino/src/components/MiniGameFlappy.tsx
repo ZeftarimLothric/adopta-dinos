@@ -273,7 +273,6 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({
   const getSpeedDisplay = () => currentSpeed.toFixed(1);
 
   const isMobile = window.innerWidth < 640;
-  const isTablet = window.innerWidth < 1024 && window.innerWidth >= 640;
 
   return (
     <div className="w-full max-w-4xl mx-auto">
