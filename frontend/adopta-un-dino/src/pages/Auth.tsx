@@ -9,6 +9,7 @@ const Auth: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { login } = useUser();
   const navigate = useNavigate();
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
   const toggleMode = () => {
     setError(null);
@@ -20,7 +21,7 @@ const Auth: React.FC = () => {
     setError(null);
 
     try {
-      const url = isLogin ? "/api/auth/login" : "/api/auth/register";
+      const url = `${API_BASE_URL}/api/auth/${isLogin ? "login" : "register"}`;
       const body = isLogin ? { username, password } : { username, password }; // Solo username y password para registro
 
       const res = await fetch(url, {
