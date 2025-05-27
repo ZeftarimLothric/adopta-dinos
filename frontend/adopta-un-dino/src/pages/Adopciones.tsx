@@ -91,10 +91,11 @@ const Adopciones = () => {
       );
       setDialogState({ show: false, type: "adopt", dino: null });
     } catch (error) {
-      console.error("Error liberando dinosaurio:", error);
-      error(
-        `No se pudo liberar a ${dino.name}. Por favor, inténtalo de nuevo.`
-      );
+      if (error instanceof Error) {
+        console.log(error.message);
+      } else {
+        console.log("Error desconocido:", error);
+      }
     }
   };
 
