@@ -32,5 +32,5 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// ✅ Exportar como objeto
+
 module.exports = { authenticateToken, authMiddleware };
