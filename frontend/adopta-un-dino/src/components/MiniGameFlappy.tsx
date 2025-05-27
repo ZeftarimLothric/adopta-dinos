@@ -14,32 +14,32 @@ const getGameDimensions = () => {
   if (isMobile) {
     return {
       GAME_WIDTH: Math.min(350, window.innerWidth - 40),
-      GAME_HEIGHT: 300,
+      GAME_HEIGHT: 400, // Aumentado de 300 a 400
       PTERO_SIZE: 30,
       OBSTACLE_WIDTH: 50,
-      OBSTACLE_GAP: 150,
+      OBSTACLE_GAP: 160, // Aumentado de 150 a 160
     };
   } else if (isTablet) {
     return {
       GAME_WIDTH: 450,
-      GAME_HEIGHT: 350,
+      GAME_HEIGHT: 450, // Aumentado de 350 a 450
       PTERO_SIZE: 32,
       OBSTACLE_WIDTH: 55,
-      OBSTACLE_GAP: 165,
+      OBSTACLE_GAP: 175, // Aumentado de 165 a 175
     };
   } else {
     return {
       GAME_WIDTH: 500,
-      GAME_HEIGHT: 400,
+      GAME_HEIGHT: 500, // Aumentado de 400 a 500
       PTERO_SIZE: 35,
       OBSTACLE_WIDTH: 60,
-      OBSTACLE_GAP: 180,
+      OBSTACLE_GAP: 190, // Aumentado de 180 a 190
     };
   }
 };
 
 const GRAVITY = 0.5;
-const JUMP_STRENGTH = -5;
+const JUMP_STRENGTH = -5; // Cambiado de -5 a -8 para mejor control
 const BASE_OBSTACLE_SPEED = 3;
 const SPEED_INCREASE_RATE = 0.5;
 const MAX_SPEED = 10;
@@ -77,6 +77,26 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [gameStarted]);
+
+  // Manejar eventos táctiles - NUEVO
+  useEffect(() => {
+    const gameArea = document.getElementById("flappy-game-area");
+    if (!gameArea) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      handleJump();
+    };
+
+    // Añadir listener con passive: false
+    gameArea.addEventListener("touchstart", handleTouchStart, {
+      passive: false,
+    });
+
+    return () => {
+      gameArea.removeEventListener("touchstart", handleTouchStart);
+    };
+  }, [gameStarted, gameOver]);
 
   // Calcular velocidad actual basada en el score
   const calculateSpeed = (score: number) => {
@@ -147,8 +167,8 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({
   // Inicializar obstáculos
   useEffect(() => {
     setObstacles([
-      { x: gameDimensions.GAME_WIDTH + 100, height: 120, scored: false },
-      { x: gameDimensions.GAME_WIDTH + 350, height: 180, scored: false },
+      { x: gameDimensions.GAME_WIDTH + 100, height: 140, scored: false }, // Altura ajustada
+      { x: gameDimensions.GAME_WIDTH + 350, height: 200, scored: false }, // Altura ajustada
     ]);
   }, [gameDimensions]);
 
@@ -193,7 +213,7 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({
             ...newObs,
             {
               x: gameDimensions.GAME_WIDTH + 50,
-              height: 80 + Math.random() * (gameDimensions.GAME_HEIGHT * 0.3),
+              height: 100 + Math.random() * (gameDimensions.GAME_HEIGHT * 0.35), // Ajustado para nueva altura
               scored: false,
             },
           ];
@@ -208,20 +228,42 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({
     };
   }, [gameStarted, gameOver, velocity, currentSpeed, gameDimensions]);
 
-  // Verificar colisiones
+  // Verificar colisiones - MEJORADA
   useEffect(() => {
     if (!gameStarted || gameOver) return;
 
+    const isMobile = window.innerWidth < 640;
+
     obstacles.forEach((o) => {
-      if (
-        o.x < 100 + gameDimensions.PTERO_SIZE &&
-        o.x + gameDimensions.OBSTACLE_WIDTH > 100 &&
-        (pteroY < o.height ||
-          pteroY + gameDimensions.PTERO_SIZE >
-            o.height + gameDimensions.OBSTACLE_GAP)
-      ) {
-        setGameOver(true);
-        submitScore(score);
+      // Posición del pterosaurio
+      const pteroLeft = isMobile ? 70 : 100;
+      const pteroRight = pteroLeft + gameDimensions.PTERO_SIZE;
+      const pteroTop = pteroY;
+      const pteroBottom = pteroY + gameDimensions.PTERO_SIZE;
+
+      // Posición del obstáculo
+      const obstacleLeft = o.x;
+      const obstacleRight = o.x + gameDimensions.OBSTACLE_WIDTH;
+
+      // Verificar si hay superposición horizontal
+      const horizontalOverlap =
+        pteroRight > obstacleLeft + 5 && pteroLeft < obstacleRight - 5; // Margen de 5px
+
+      if (horizontalOverlap) {
+        // Verificar colisión con obstáculo superior
+        const topObstacleBottom = o.height;
+
+        // Verificar colisión con obstáculo inferior
+        const bottomObstacleTop = o.height + gameDimensions.OBSTACLE_GAP;
+
+        // Colisión si el pterosaurio toca los obstáculos (con margen de 3px)
+        if (
+          pteroTop < topObstacleBottom - 3 ||
+          pteroBottom > bottomObstacleTop + 3
+        ) {
+          setGameOver(true);
+          submitScore(score);
+        }
       }
     });
   }, [pteroY, obstacles, gameStarted, gameOver, score, gameDimensions]);
@@ -230,7 +272,7 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({
   useEffect(() => {
     const currentPackage = Math.floor(score / 10);
     if (currentPackage > packagesGiven && score > 0) {
-      const pointsToAdd = 5;
+      const pointsToAdd = 20;
       onWin(pointsToAdd);
 
       if (user) {
@@ -249,8 +291,8 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({
     setPteroY(gameDimensions.GAME_HEIGHT / 2);
     setVelocity(0);
     setObstacles([
-      { x: gameDimensions.GAME_WIDTH + 100, height: 120, scored: false },
-      { x: gameDimensions.GAME_WIDTH + 350, height: 180, scored: false },
+      { x: gameDimensions.GAME_WIDTH + 100, height: 140, scored: false },
+      { x: gameDimensions.GAME_WIDTH + 350, height: 200, scored: false },
     ]);
     setScore(0);
     setGameOver(false);
@@ -355,6 +397,7 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({
         {/* Área de juego - completamente responsive */}
         <div className="flex justify-center">
           <div
+            id="flappy-game-area" // ID AÑADIDO para el useEffect
             className="border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 relative overflow-hidden cursor-pointer"
             style={{
               width: gameDimensions.GAME_WIDTH,
@@ -362,14 +405,11 @@ const MiniGameFlappy: React.FC<MiniGameFlappyProps> = ({
               background:
                 "linear-gradient(to bottom, #87CEEB 0%, #87CEEB 75%, #90EE90 75%, #228B22 100%)",
               userSelect: "none",
-              touchAction: "manipulation", // Mejor soporte táctil
+              touchAction: "none", // CAMBIADO de "manipulation" a "none"
             }}
             tabIndex={0}
             onClick={handleJump}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              handleJump();
-            }}
+            // onTouchStart REMOVIDO - se maneja en useEffect
             onKeyDown={(e) => {
               if (e.code === "Space" || e.code === "Enter") {
                 e.preventDefault();
