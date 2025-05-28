@@ -53,10 +53,7 @@ interface FlappyConfig {
     private ptero!: Phaser.Physics.Arcade.Sprite;
     private pipes!: Phaser.Physics.Arcade.Group;
     private powerUps!: Phaser.Physics.Arcade.Group;
-    // private particles!: Phaser.GameObjects.Group;
-    // private trail?: Phaser.GameObjects.Group;
     private clouds: Phaser.GameObjects.Text[] = [];
-    // private sun!: Phaser.GameObjects.Text;
     private sunRays!: Phaser.GameObjects.Graphics;
     private comboText!: Phaser.GameObjects.Text;
     private perfectText!: Phaser.GameObjects.Text;
@@ -178,11 +175,6 @@ interface FlappyConfig {
       
       this.pipes = this.physics.add.group();
       this.powerUps = this.physics.add.group();
-      
-      // if (this.CONFIG.EFFECTS.TRAIL_ENABLED) {
-      //   // this.trail = this.add.group();
-      //   this.trailTimer = 0;
-      // }
       
       this.setupInput();
       
@@ -895,24 +887,4 @@ interface FlappyConfig {
         this.comboText.setText('');
       }
     }
-
-  // private updateEffects(): void {
-  //   // Reset del combo después de un tiempo sin perfect timing
-  //   if (this.combo > 0) {
-  //     // Si no hay obstáculos cerca, resetear combo gradualmente
-  //     let hasNearbyObstacle = false;
-  //     this.pipes.children.entries.forEach(pipe => {
-  //       const distance = Math.abs((pipe as any).x - this.ptero.x);
-  //       if (distance < 100) {
-  //         hasNearbyObstacle = true;
-  //       }
-  //     });
-      
-  //     if (!hasNearbyObstacle) {
-  //       this.time.delayedCall(1000, () => {
-  //         this.combo = Math.max(0, this.combo - 1);
-  //       });
-  //     }
-  //   }
-  // }
 }
