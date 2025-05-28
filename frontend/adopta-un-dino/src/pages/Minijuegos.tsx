@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import MiniGameFlappy from "../components/MiniGameFlappy";
+import MiniGameFlappyPhaser, {
+  FLAPPY_CONFIG,
+} from "../components/MiniGameFlappyPhaser";
 import Leaderboard from "../components/Leaderboard";
 import { useUser } from "../context/UserContext";
 
@@ -270,8 +272,11 @@ const Minijuegos = () => {
                         personal y llegar al Top 10?
                       </span>
                       <span className="sm:hidden">
-                        ¡Vola entre obstáculos y gana{" "}
-                        <strong>5 DinoPoints</strong> cada 10!
+                        ¡Vola entre obstáculos y gana •{" "}
+                        <strong>
+                          {FLAPPY_CONFIG.DINOPOINTS_AMOUNT} DinoPoints
+                        </strong>{" "}
+                        cada {FLAPPY_CONFIG.DINOPOINTS_INTERVAL}
                       </span>
                     </p>
                   </div>
@@ -281,7 +286,7 @@ const Minijuegos = () => {
               {/* Área del juego responsive */}
               <div className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 p-2 sm:p-6 mb-3 sm:mb-6 shadow-lg">
                 <div className="flex justify-center">
-                  <MiniGameFlappy
+                  <MiniGameFlappyPhaser
                     onWin={handleWin}
                     onScoreUpdate={handleScoreUpdate}
                   />
