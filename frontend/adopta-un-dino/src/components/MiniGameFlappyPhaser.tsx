@@ -22,7 +22,7 @@ const MiniGameFlappyPhaser: React.FC<MiniGameFlappyPhaserProps> = ({
   const [gameStarted, setGameStarted] = useState(false);
   const [currentSpeed, setCurrentSpeed] = useState(3);
   const [notification, setNotification] = useState<string | null>(null);
-  const [packagesGiven, setPackagesGiven] = useState(0);
+  //   const [packagesGiven, setPackagesGiven] = useState(0);
 
   const { user, updateUser } = useUser();
   const gameRef = useRef<HTMLDivElement>(null);
@@ -59,7 +59,7 @@ const MiniGameFlappyPhaser: React.FC<MiniGameFlappyPhaserProps> = ({
       physics: {
         default: "arcade",
         arcade: {
-          gravity: { y: 0 },
+          gravity: { y: 0, x: 0 }, // Agregar x: 0 para completar Vector2Like
           debug: false,
         },
       },
@@ -111,7 +111,8 @@ const MiniGameFlappyPhaser: React.FC<MiniGameFlappyPhaserProps> = ({
       setNotification(`+${pointsToAdd} DinoPoints!`);
       setTimeout(() => setNotification(null), 2000);
 
-      setPackagesGiven(Math.floor(e.detail.score / 10));
+      // Remover esta línea:
+      // setPackagesGiven(Math.floor(e.detail.score / 10));
     };
 
     const handleGameOver = (e: any) => {
@@ -125,7 +126,7 @@ const MiniGameFlappyPhaser: React.FC<MiniGameFlappyPhaserProps> = ({
       setGameOver(false);
       setGameStarted(false);
       setCurrentSpeed(3);
-      setPackagesGiven(0);
+      // Remover setPackagesGiven(0);
       setNotification(null);
     };
 
