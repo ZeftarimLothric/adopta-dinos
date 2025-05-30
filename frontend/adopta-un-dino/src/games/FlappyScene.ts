@@ -930,23 +930,6 @@ export default class FlappyScene extends Phaser.Scene {
     });
   }
 
-  private updateTrail(): void {
-    this.trailTimer++;
-    if (this.trailTimer % 3 === 0) {
-      const trail = this.add.image(this.ptero.x - 15, this.ptero.y, "trail");
-      trail.setAlpha(0.6);
-      trail.setScale(0.5);
-
-      this.tweens.add({
-        targets: trail,
-        alpha: 0,
-        scale: 0,
-        duration: 500,
-        onComplete: () => trail.destroy(),
-      });
-    }
-  }
-
   private updateComboUI(): void {
     if (this.combo > 0) {
       this.comboText.setText(`PERFECT x${this.combo}`);
