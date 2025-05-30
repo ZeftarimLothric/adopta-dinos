@@ -62,7 +62,6 @@ export default class FlappyScene extends Phaser.Scene {
   // Timers
   private obstacleTimer!: Phaser.Time.TimerEvent;
   private powerUpTimer!: Phaser.Time.TimerEvent;
-  private trailTimer: number = 0;
 
   // Input
   private spaceKey!: Phaser.Input.Keyboard.Key;
