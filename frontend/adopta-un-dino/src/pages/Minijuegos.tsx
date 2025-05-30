@@ -1,18 +1,67 @@
 import { useState, useEffect } from "react";
-import MiniGameFlappyPhaser, {
-  FLAPPY_CONFIG,
-} from "../components/MiniGameFlappyPhaser";
-import Leaderboard from "../components/Leaderboard";
+import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+
+// Definición de tipos para los juegos
+interface MiniGame {
+  id: string;
+  title: string;
+  shortTitle: string;
+  description: string;
+  shortDescription: string;
+  icon: string;
+  category: "accion" | "cuidado" | "puzzle" | "aventura";
+  difficulty: "facil" | "medio" | "dificil";
+  dinoPointsReward: number;
+  rewardInterval: number;
+  featured: boolean;
+  available: boolean;
+  route: string;
+  previewImage?: string;
+}
+
+// Base de datos de juegos
+const MINIGAMES: MiniGame[] = [
+  {
+    id: "flappy-ptero",
+    title: "PTEROSAURIO FLAPPY",
+    shortTitle: "PTERO FLAPPY",
+    description:
+      "¡Ayuda al pterosaurio a volar entre los obstáculos prehistóricos! Cada 10 obstáculos superados te otorgan 20 DinoPoints. ¿Podrás superar tu récord personal y llegar al Top 10?",
+    shortDescription: "Vola entre obstáculos y gana DinoPoints",
+    icon: "🦅",
+    category: "accion",
+    difficulty: "medio",
+    dinoPointsReward: 20,
+    rewardInterval: 10,
+    featured: true,
+    available: true,
+    route: "/minijuegos/flappy-ptero",
+  },
+  {
+    id: "dino-care",
+    title: "CUIDADOR DE DINOSAURIOS",
+    shortTitle: "DINO CARE",
+    description:
+      "Cuida y alimenta a tu propio dinosaurio virtual. Mantén sus estadísticas de hambre, felicidad y energía al máximo para ganar DinoPoints constantes.",
+    shortDescription: "Cuida tu dino virtual y gana puntos",
+    icon: "🦕",
+    category: "cuidado",
+    difficulty: "facil",
+    dinoPointsReward: 5,
+    rewardInterval: 1,
+    featured: false,
+    available: false, // Próximamente
+    route: "/minijuegos/dino-care",
+  },
+];
 
 const Minijuegos = () => {
   const { user } = useUser();
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [activeSection, setActiveSection] = useState<"game" | "leaderboard">(
-    "game"
-  );
-  const [leaderboardKey, setLeaderboardKey] = useState(0);
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const [activeCategory, setActiveCategory] = useState<string>("todos");
+  const [selectedGame, setSelectedGame] = useState<MiniGame | null>(null);
 
   // Actualizar reloj cada segundo
   useEffect(() => {
@@ -22,30 +71,34 @@ const Minijuegos = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleWin = async (points: number) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  // Filtrar juegos por categoría
+  const filteredGames = MINIGAMES.filter(
+    (game) => activeCategory === "todos" || game.category === activeCategory
+  );
 
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/users/add-points`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ points }),
-      });
-      if (!res.ok) {
-        throw new Error("Error al enviar puntos al backend");
-      }
-    } catch (err) {
-      console.error("Error al enviar puntos al backend", err);
+  const availableGames = filteredGames.filter((game) => game.available);
+  const upcomingGames = filteredGames.filter((game) => !game.available);
+
+  const handleGameClick = (game: MiniGame) => {
+    if (game.available) {
+      navigate(game.route);
+    } else {
+      setSelectedGame(game);
     }
   };
 
-  const handleScoreUpdate = () => {
-    setLeaderboardKey((prev) => prev + 1);
+  const getCategoryIcon = (category: string) => {
+    const icons = {
+      todos: "🎮",
+      accion: "⚡",
+      cuidado: "💝",
+      puzzle: "🧩",
+      aventura: "🗺️",
+    };
+    return icons[category as keyof typeof icons] || "🎮";
   };
+
+  const isMobile = window.innerWidth < 640;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-400 via-teal-500 to-cyan-600 p-2 sm:p-4 pb-16 relative overflow-hidden">
@@ -74,7 +127,7 @@ const Minijuegos = () => {
         ></div>
       </div>
 
-      {/* Decoraciones flotantes - ocultas en móvil para mejor performance */}
+      {/* Decoraciones flotantes */}
       <div className="hidden md:block absolute top-10 left-10 text-4xl lg:text-6xl opacity-10 animate-bounce">
         🦕
       </div>
@@ -94,9 +147,9 @@ const Minijuegos = () => {
         💎
       </div>
 
-      {/* Ventana principal responsive */}
+      {/* Ventana principal */}
       <div className="relative z-10 bg-gray-300 border-2 border-t-white border-l-white border-r-gray-600 border-b-gray-600 max-w-7xl mx-auto shadow-2xl">
-        {/* Barra de título responsive */}
+        {/* Barra de título */}
         <div className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 text-white px-2 sm:px-3 py-2 flex items-center justify-between shadow-inner">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="w-4 h-4 sm:w-5 sm:h-5 bg-gray-300 border border-gray-600 flex items-center justify-center text-xs sm:text-sm font-bold text-black rounded-sm shadow-inner flex-shrink-0">
@@ -128,65 +181,7 @@ const Minijuegos = () => {
           </div>
         </div>
 
-        {/* Barra de herramientas responsive */}
-        <div className="bg-gray-200 border-b-2 border-gray-400 p-2 sm:p-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 shadow-inner">
-          {/* Botones de navegación */}
-          <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto overflow-x-auto">
-            <button
-              onClick={() => setActiveSection("game")}
-              className={`border-2 px-2 sm:px-4 py-1 sm:py-2 shadow-md hover:bg-gray-200 cursor-pointer transition-all whitespace-nowrap ${
-                activeSection === "game"
-                  ? "bg-gradient-to-b from-gray-100 to-gray-300 border-t-white border-l-white border-r-gray-600 border-b-gray-600"
-                  : "bg-gray-300 border-t-gray-600 border-l-gray-600 border-r-white border-b-white"
-              }`}
-            >
-              <span
-                className="text-xs font-bold text-black flex items-center gap-1 sm:gap-2"
-                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-              >
-                🎮 <span className="hidden sm:inline">Juegos</span>
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveSection("leaderboard")}
-              className={`border-2 px-2 sm:px-4 py-1 sm:py-2 shadow-md hover:bg-gray-200 cursor-pointer transition-all whitespace-nowrap ${
-                activeSection === "leaderboard"
-                  ? "bg-gradient-to-b from-gray-100 to-gray-300 border-t-white border-l-white border-r-gray-600 border-b-gray-600"
-                  : "bg-gray-300 border-t-gray-600 border-l-gray-600 border-r-white border-b-white"
-              }`}
-            >
-              <span
-                className="text-xs font-bold text-black flex items-center gap-1 sm:gap-2"
-                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-              >
-                🏆 <span className="hidden sm:inline">Puntuaciones</span>
-              </span>
-            </button>
-
-            <div className="hidden md:block bg-gray-300 border-2 border-t-gray-600 border-l-gray-600 border-r-white border-b-white px-2 sm:px-4 py-1 sm:py-2 shadow-inner hover:bg-gray-200 cursor-pointer transition-all">
-              <span
-                className="text-xs font-bold text-black flex items-center gap-2"
-                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-              >
-                ⚙️ Configuración
-              </span>
-            </div>
-          </div>
-
-          {/* Panel de DinoPoints */}
-          <div className="ml-auto bg-gradient-to-b from-green-100 to-green-200 border-2 border-green-400 px-2 sm:px-4 py-1 sm:py-2 shadow-md flex-shrink-0">
-            <span
-              className="text-xs sm:text-sm text-green-800 font-bold flex items-center gap-1 sm:gap-2"
-              style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-            >
-              💎 <span className="hidden sm:inline">DinoPoints:</span>{" "}
-              {user?.points || 0}
-            </span>
-          </div>
-        </div>
-
-        {/* Panel de bienvenida responsive */}
+        {/* Panel de bienvenida */}
         <div className="bg-gray-200 border-b-2 border-gray-400 p-2 sm:p-4 shadow-inner">
           <div className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 p-3 sm:p-4 shadow-md">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
@@ -198,200 +193,209 @@ const Minijuegos = () => {
                     textShadow: "1px 1px 0px #c0c0c0",
                   }}
                 >
-                  ¡Bienvenido, {user?.username || "Invitado"}! 👋
+                  ¡Bienvenido al Arcade Prehistórico,{" "}
+                  {user?.username || "Invitado"}! 👋
                 </h2>
                 <p
                   className="text-xs sm:text-sm text-gray-700"
                   style={{ fontFamily: "MS Sans Serif, sans-serif" }}
                 >
-                  {activeSection === "game"
-                    ? "Disfruta de nuestros juegos prehistóricos y gana DinoPoints"
-                    : "Consulta las mejores puntuaciones y tus estadísticas personales"}
+                  Explora nuestra colección de juegos prehistóricos y gana
+                  DinoPoints
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
-                <div
-                  className="text-xs sm:text-sm font-bold text-blue-600"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  🕐 {currentTime.toLocaleTimeString()}
-                </div>
-                <div
-                  className="text-xs text-gray-600"
-                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                >
-                  <span className="hidden sm:inline">
-                    {currentTime.toLocaleDateString()}
-                  </span>
-                  <span className="sm:hidden">
-                    {currentTime.toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "2-digit",
-                    })}
-                  </span>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="bg-gradient-to-b from-green-100 to-green-200 border-2 border-green-400 px-2 sm:px-4 py-1 sm:py-2 shadow-md">
+                    <span
+                      className="text-xs sm:text-sm text-green-800 font-bold flex items-center gap-1 sm:gap-2"
+                      style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+                    >
+                      💎 <span className="hidden sm:inline">DinoPoints:</span>{" "}
+                      {user?.points || 0}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div
+                      className="text-xs sm:text-sm font-bold text-blue-600"
+                      style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+                    >
+                      🕐 {currentTime.toLocaleTimeString()}
+                    </div>
+                    <div
+                      className="text-xs text-gray-600"
+                      style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+                    >
+                      <span className="hidden sm:inline">
+                        {currentTime.toLocaleDateString()}
+                      </span>
+                      <span className="sm:hidden">
+                        {currentTime.toLocaleDateString("es-ES", {
+                          day: "2-digit",
+                          month: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Contenido principal responsive */}
-        <div className="bg-gray-300 p-2 sm:p-6">
-          {activeSection === "game" ? (
-            <>
-              {/* Panel de título del juego responsive */}
-              <div className="bg-gray-200 border-2 border-gray-400 border-t-gray-600 border-l-gray-600 border-r-white border-b-white p-3 sm:p-6 mb-3 sm:mb-6 shadow-inner">
-                <div className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 p-3 sm:p-4 shadow-md">
-                  <div className="text-center">
-                    <div className="text-3xl sm:text-5xl mb-2 sm:mb-3 animate-bounce">
-                      🦅
-                    </div>
-                    <h1
-                      className="text-lg sm:text-3xl font-bold text-black mb-2 sm:mb-3"
-                      style={{
-                        fontFamily: "MS Sans Serif, sans-serif",
-                        textShadow: "2px 2px 0px #c0c0c0",
-                      }}
-                    >
-                      <span className="hidden sm:inline">
-                        PTEROSAURIO FLAPPY
-                      </span>
-                      <span className="sm:hidden">PTERO FLAPPY</span>
-                    </h1>
-                    <div className="bg-blue-600 text-white px-2 sm:px-3 py-1 text-xs sm:text-sm font-bold inline-block mb-2 sm:mb-3 shadow-md">
-                      JUEGO DESTACADO
-                    </div>
-                    <p
-                      className="text-xs sm:text-sm text-black max-w-2xl mx-auto"
-                      style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                    >
-                      <span className="hidden sm:inline">
-                        ¡Ayuda al pterosaurio a volar entre los obstáculos
-                        prehistóricos! Cada 10 obstáculos superados te otorgan{" "}
-                        <strong>5 DinoPoints</strong>. ¿Podrás superar tu récord
-                        personal y llegar al Top 10?
-                      </span>
-                      <span className="sm:hidden">
-                        ¡Vola entre obstáculos y gana •{" "}
-                        <strong>
-                          {FLAPPY_CONFIG.DINOPOINTS_AMOUNT} DinoPoints
-                        </strong>{" "}
-                        cada {FLAPPY_CONFIG.DINOPOINTS_INTERVAL}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Área del juego responsive */}
-              <div className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 p-2 sm:p-6 mb-3 sm:mb-6 shadow-lg">
-                <div className="flex justify-center">
-                  <MiniGameFlappyPhaser
-                    onWin={handleWin}
-                    onScoreUpdate={handleScoreUpdate}
-                  />
-                </div>
-              </div>
-
-              {/* Panel de información adicional responsive */}
-              <div className="bg-gray-200 border-2 border-gray-400 border-t-gray-600 border-l-gray-600 border-r-white border-b-white p-2 sm:p-4 shadow-inner">
-                <div className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 p-3 sm:p-4 shadow-md">
-                  <h3
-                    className="text-sm sm:text-lg font-bold text-black mb-2 sm:mb-3 text-center"
+        {/* Filtros de categoría */}
+        <div className="bg-gray-200 border-b-2 border-gray-400 p-2 sm:p-3 shadow-inner">
+          <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto">
+            {["todos", "accion", "cuidado", "puzzle", "aventura"].map(
+              (category) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`border-2 px-2 sm:px-4 py-1 sm:py-2 shadow-md hover:bg-gray-200 cursor-pointer transition-all whitespace-nowrap ${
+                    activeCategory === category
+                      ? "bg-gradient-to-b from-gray-100 to-gray-300 border-t-white border-l-white border-r-gray-600 border-b-gray-600"
+                      : "bg-gray-300 border-t-gray-600 border-l-gray-600 border-r-white border-b-white"
+                  }`}
+                >
+                  <span
+                    className="text-xs font-bold text-black flex items-center gap-1 sm:gap-2"
                     style={{ fontFamily: "MS Sans Serif, sans-serif" }}
                   >
-                    📖 CÓMO JUGAR
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
-                    <div
-                      className="bg-blue-100 border border-blue-400 p-2 sm:p-3"
-                      style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                    >
-                      <h4 className="font-bold text-blue-800 mb-2">
-                        🎮 Controles
-                      </h4>
-                      <ul className="text-blue-700 space-y-1">
-                        <li>
-                          • <strong>Clic</strong> o <strong>Toque:</strong>{" "}
-                          Volar
-                        </li>
-                        <li>
-                          • <strong>Espacio:</strong> Volar (PC)
-                        </li>
-                        <li>
-                          • <strong>Enter:</strong> Reiniciar
-                        </li>
-                      </ul>
-                    </div>
-                    <div
-                      className="bg-green-100 border border-green-400 p-2 sm:p-3"
-                      style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                    >
-                      <h4 className="font-bold text-green-800 mb-2">
-                        🏆 Objetivos
-                      </h4>
-                      <ul className="text-green-700 space-y-1">
-                        <li>• Pasa entre obstáculos</li>
-                        <li>
-                          • <strong>5 DinoPoints</strong> cada 10
-                        </li>
-                        <li>• ⚡ Velocidad aumenta</li>
-                        <li>• ¡Bate tu récord!</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Panel de título del leaderboard responsive */}
-              <div className="bg-gray-200 border-2 border-gray-400 border-t-gray-600 border-l-gray-600 border-r-white border-b-white p-3 sm:p-6 mb-3 sm:mb-6 shadow-inner">
-                <div className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 p-3 sm:p-4 shadow-md">
-                  <div className="text-center">
-                    <div className="text-3xl sm:text-5xl mb-2 sm:mb-3">🏆</div>
-                    <h1
-                      className="text-lg sm:text-3xl font-bold text-black mb-2 sm:mb-3"
-                      style={{
-                        fontFamily: "MS Sans Serif, sans-serif",
-                        textShadow: "2px 2px 0px #c0c0c0",
-                      }}
-                    >
-                      <span className="hidden sm:inline">
-                        TABLA DE PUNTUACIONES
-                      </span>
-                      <span className="sm:hidden">RANKINGS</span>
-                    </h1>
-                    <div className="bg-orange-600 text-white px-2 sm:px-3 py-1 text-xs sm:text-sm font-bold inline-block mb-2 sm:mb-3 shadow-md">
-                      RANKING MUNDIAL
-                    </div>
-                    <p
-                      className="text-xs sm:text-sm text-black max-w-2xl mx-auto"
-                      style={{ fontFamily: "MS Sans Serif, sans-serif" }}
-                    >
-                      <span className="hidden sm:inline">
-                        Consulta las mejores puntuaciones de todos los jugadores
-                        y compara tu rendimiento. ¡Compite por llegar al primer
-                        puesto!
-                      </span>
-                      <span className="sm:hidden">
-                        Mejores puntuaciones y tus estadísticas
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
+                    {getCategoryIcon(category)}
+                    <span className="hidden sm:inline capitalize">
+                      {category}
+                    </span>
+                  </span>
+                </button>
+              )
+            )}
+          </div>
+        </div>
 
-              {/* Área del leaderboard responsive */}
-              <div className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 p-2 sm:p-6 shadow-lg">
-                <Leaderboard key={leaderboardKey} />
+        {/* Contenido principal */}
+        <div className="bg-gray-300 p-2 sm:p-6">
+          {/* Juegos destacados */}
+          {activeCategory === "todos" && (
+            <div className="mb-6">
+              <h3
+                className="text-lg sm:text-xl font-bold text-black mb-3 flex items-center gap-2"
+                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+              >
+                ⭐ JUEGOS DESTACADOS
+              </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {MINIGAMES.filter((game) => game.featured).map((game) => (
+                  <GameCard
+                    key={game.id}
+                    game={game}
+                    onClick={() => handleGameClick(game)}
+                    isFeatured={true}
+                    isMobile={isMobile}
+                  />
+                ))}
               </div>
-            </>
+            </div>
+          )}
+
+          {/* Juegos disponibles */}
+          {availableGames.length > 0 && (
+            <div className="mb-6">
+              <h3
+                className="text-lg sm:text-xl font-bold text-black mb-3 flex items-center gap-2"
+                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+              >
+                🎮{" "}
+                {activeCategory === "todos"
+                  ? "TODOS LOS JUEGOS"
+                  : `JUEGOS DE ${activeCategory.toUpperCase()}`}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {availableGames.map((game) => (
+                  <GameCard
+                    key={game.id}
+                    game={game}
+                    onClick={() => handleGameClick(game)}
+                    isMobile={isMobile}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Juegos próximamente */}
+          {upcomingGames.length > 0 && (
+            <div>
+              <h3
+                className="text-lg sm:text-xl font-bold text-black mb-3 flex items-center gap-2"
+                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+              >
+                🚧 PRÓXIMAMENTE
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {upcomingGames.map((game) => (
+                  <GameCard
+                    key={game.id}
+                    game={game}
+                    onClick={() => handleGameClick(game)}
+                    isComingSoon={true}
+                    isMobile={isMobile}
+                  />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Barra de estado responsive */}
+      {/* Modal de juego no disponible */}
+      {selectedGame && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-300 border-2 border-t-white border-l-white border-r-gray-600 border-b-gray-600 p-4 max-w-md w-full">
+            <div className="bg-gradient-to-r from-yellow-800 to-yellow-600 text-white px-3 py-2 mb-3 flex items-center justify-between">
+              <span
+                className="text-sm font-bold"
+                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+              >
+                🚧 Próximamente
+              </span>
+              <button
+                onClick={() => setSelectedGame(null)}
+                className="w-4 h-4 bg-red-500 border border-red-700 flex items-center justify-center text-xs text-white hover:bg-red-400"
+              >
+                ×
+              </button>
+            </div>
+            <div className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 p-4">
+              <div className="text-center">
+                <div className="text-4xl mb-3">{selectedGame.icon}</div>
+                <h4
+                  className="text-lg font-bold text-black mb-2"
+                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+                >
+                  {selectedGame.title}
+                </h4>
+                <p
+                  className="text-sm text-gray-700 mb-4"
+                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+                >
+                  {selectedGame.description}
+                </p>
+                <div className="bg-yellow-100 border border-yellow-400 p-3 rounded">
+                  <p
+                    className="text-sm text-yellow-800 font-bold"
+                    style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+                  >
+                    🚧 Este juego estará disponible próximamente. ¡Mantente
+                    atento a las actualizaciones!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Barra de estado */}
       <div
         className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-gray-300 to-gray-200 border-t-2 border-t-white p-1 sm:p-2 flex justify-between items-center text-xs z-20 shadow-lg overflow-x-auto"
         style={{ fontFamily: "MS Sans Serif, sans-serif" }}
@@ -400,20 +404,13 @@ const Minijuegos = () => {
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-black font-bold">DinoGames v2.0</span>
-            <span className="text-gray-600 hidden sm:inline">
-              Sistema Operativo
-            </span>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <span className="text-black">🎮</span>
-            <span className="text-black hidden sm:inline">
-              Juegos: 1 activo
+            <span className="text-black">
+              Juegos: {availableGames.length} disponibles,{" "}
+              {upcomingGames.length} próximamente
             </span>
-            <span className="text-black sm:hidden">1 juego</span>
-          </div>
-          <div className="hidden md:flex items-center gap-2">
-            <span className="text-black">💾</span>
-            <span className="text-black">Guardado automático</span>
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -432,6 +429,134 @@ const Minijuegos = () => {
                 minute: "2-digit",
               })}
             </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente para las tarjetas de juegos
+const GameCard: React.FC<{
+  game: MiniGame;
+  onClick: () => void;
+  isFeatured?: boolean;
+  isComingSoon?: boolean;
+  isMobile?: boolean;
+}> = ({
+  game,
+  onClick,
+  isFeatured = false,
+  isComingSoon = false,
+  // isMobile = false,
+}) => {
+  const getDifficultyColor = (difficulty: string) => {
+    const colors = {
+      facil: "text-green-600",
+      medio: "text-yellow-600",
+      dificil: "text-red-600",
+    };
+    return colors[difficulty as keyof typeof colors] || "text-gray-600";
+  };
+
+  const getDifficultyBg = (difficulty: string) => {
+    const colors = {
+      facil: "bg-green-100 border-green-400",
+      medio: "bg-yellow-100 border-yellow-400",
+      dificil: "bg-red-100 border-red-400",
+    };
+    return (
+      colors[difficulty as keyof typeof colors] || "bg-gray-100 border-gray-400"
+    );
+  };
+
+  return (
+    <div
+      onClick={onClick}
+      className={`bg-gray-200 border-2 border-gray-400 border-t-gray-600 border-l-gray-600 border-r-white border-b-white p-3 sm:p-4 shadow-inner hover:bg-gray-100 cursor-pointer transition-all group ${
+        isComingSoon ? "opacity-70" : ""
+      }`}
+    >
+      <div className="bg-white border-2 border-gray-600 border-t-gray-800 border-l-gray-800 border-r-gray-200 border-b-gray-200 p-3 sm:p-4 shadow-md">
+        <div className="flex items-start gap-3">
+          <div
+            className={`text-3xl ${
+              isFeatured ? "sm:text-4xl" : "sm:text-3xl"
+            } flex-shrink-0`}
+          >
+            {game.icon}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <h4
+                className={`font-bold text-black truncate ${
+                  isFeatured ? "text-base sm:text-lg" : "text-sm sm:text-base"
+                }`}
+                style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+              >
+                <span className="hidden sm:inline">{game.title}</span>
+                <span className="sm:hidden">{game.shortTitle}</span>
+              </h4>
+              {isFeatured && (
+                <div className="bg-blue-600 text-white px-2 py-1 text-xs font-bold shadow-md flex-shrink-0">
+                  DESTACADO
+                </div>
+              )}
+              {isComingSoon && (
+                <div className="bg-yellow-600 text-white px-2 py-1 text-xs font-bold shadow-md flex-shrink-0">
+                  PRÓXIMAMENTE
+                </div>
+              )}
+            </div>
+
+            <p
+              className={`text-gray-700 mb-3 ${
+                isFeatured ? "text-xs sm:text-sm" : "text-xs"
+              }`}
+              style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+            >
+              <span className="hidden sm:inline">{game.description}</span>
+              <span className="sm:hidden">{game.shortDescription}</span>
+            </p>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <div
+                className={`px-2 py-1 border ${getDifficultyBg(
+                  game.difficulty
+                )}`}
+              >
+                <span
+                  className={`font-bold ${getDifficultyColor(game.difficulty)}`}
+                >
+                  {game.difficulty.toUpperCase()}
+                </span>
+              </div>
+
+              {game.available && (
+                <div className="bg-green-100 border border-green-400 px-2 py-1">
+                  <span className="text-green-600 font-bold">
+                    +{game.dinoPointsReward} pts
+                  </span>
+                </div>
+              )}
+
+              <div className="bg-blue-100 border border-blue-400 px-2 py-1">
+                <span className="text-blue-600 font-bold capitalize">
+                  {game.category}
+                </span>
+              </div>
+            </div>
+
+            {!isComingSoon && (
+              <div className="mt-3 text-right">
+                <span
+                  className="text-xs text-blue-600 font-bold group-hover:underline"
+                  style={{ fontFamily: "MS Sans Serif, sans-serif" }}
+                >
+                  ► JUGAR AHORA
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

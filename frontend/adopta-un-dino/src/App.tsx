@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import { UserProvider, useUser } from "./context/UserContext";
 import Navbar from "./components/Navbar";
 import Minijuegos from "./pages/Minijuegos";
+import FlappyPtero from "./pages/FlappyPtero";
 
 // Componente para rutas protegidas (ejemplo Admin)
 const ProtectedRoute: React.FC<{
@@ -49,6 +50,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Minijuegos />
+              </ProtectedRoute>
+            }
+          />
+          {/* ✅ Nueva ruta para el juego específico */}
+          <Route
+            path="/minijuegos/flappy-ptero"
+            element={
+              <ProtectedRoute>
+                <FlappyPtero />
               </ProtectedRoute>
             }
           />
